@@ -21,6 +21,9 @@ class Book(db.Model):
     def get_all_books():
         return Book.query.all()
 
+    def get_book(_isbn):
+        return Book.query.filter_by(isbn=_isbn).first()
+
     def __repr__(self):
         book_object = {
             'name': self.name,
@@ -28,3 +31,4 @@ class Book(db.Model):
             'isbn': self.isbn 
         }
         return json.dumps(book_object)
+ 

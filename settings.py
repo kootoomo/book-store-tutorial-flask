@@ -3,6 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////var/www/database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////var/www/book-store-tutorial-flask/book-store-tutorial/database.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
- 

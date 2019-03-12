@@ -4,7 +4,6 @@ from settings import *
 
 app = Flask(__name__)
 
-
 books = [
     {   'name': 'A',
         'price': 7.99,
