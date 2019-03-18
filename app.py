@@ -5,11 +5,22 @@ import json
 
 import jwt, datetime
 from UserModel import User
+from functools import wraps
 
 books = Book.get_all_books()
 
 # ~~PAGINATION~~
-DEFAULT_PAGE_LIMIT = 3
+# DEFAULT_PAGE_LIMIT = 3
+
+# @app.route('/books/page/<int:page_number>')
+# def get_paginated_books(page_number):
+#     print(type(request.args.get('limit')))
+#     LIMIT = request.args.get('limit', DEFAULT_PAGE_LIMIT, int)
+#     startIndex = page_number*LIMIT-LIMIT
+#     endIndex = page_number*LIMIT
+#     print(startIndex)
+#     print(endIndex)
+#     return jsonify({'books': books[startIndex:endIndex]})
 
 app.config['SECRET_KEY'] = 'meow'
 
@@ -28,26 +39,23 @@ def get_token():
     else:
         return Response('', 401, mimetype='application/json')
 
-@app.route('/books/page/<int:page_number>')
-def get_paginated_books(page_number):
-    print(type(request.args.get('limit')))
-    LIMIT = request.args.get('limit', DEFAULT_PAGE_LIMIT, int)
-    startIndex = page_number*LIMIT-LIMIT
-    endIndex = page_number*LIMIT
-    print(startIndex)
-    print(endIndex)
-    return jsonify({'books': books[startIndex:endIndex]})
+def token_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        token = request.args.get('token')
+        try:
+            jwt.decode(token, app.config['SECRET_KEY'])
+            return f(*args, **kwargs)
+        except:
+            return jsonify({'error': 'Need a valid token to view this page'}), 401
+        return wrapper
+
 
 
 # GET /books?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NTI5NDY5NDh9.6hYoqqp5OrmWelkr3aAeCTIDMMIDF8vi-uQzK3mva4E
 @app.route('/books')
-def get_books():
-    token = request.args.get('token')
-    try:
-        jwt.decode(token. app.config['SECRET_KEY'])
-    except:
-        return jsonify({'error': 'Need a valid token to view this page'}), 401
 
+def get_books():
     return jsonify({'books': books})
 
 def validBookObject(bookObject):
@@ -63,6 +71,7 @@ def get_book_by_isbn(isbn):
 
 # POST /books
 @app.route('/books', methods=['POST'])
+@token_required
 def add_book():
     request_data = request.get_json()
     if(validBookObject(request_data)):
@@ -85,6 +94,7 @@ def valid_put_request_data(request_data):
         return False
 
 @app.route('/books/<int:isbn>', methods=['PUT'])
+@token_required
 def replace_book(isbn):
     request_data = request.get_json()
     if(not valid_put_request_data(request_data)):
@@ -106,6 +116,7 @@ def valid_patch_request_data(request_data):
         return False
 
 @app.route('/books/<int:isbn>', methods=['PATCH'])
+@token_required
 def update_book(isbn):
     request_data = request.get_json()
     if(not valid_patch_request_data(request_data)):
@@ -127,10 +138,18 @@ def update_book(isbn):
     return response
 
 @app.route('/books/<int:isbn>', methods=['DELETE'])
+@token_required
 def delete_book(isbn):
     if(Book.delete_book(isbn)):
         response = Response("", status=204)
         return response
+
+# for book in books:
+#     if book["isbn"] == isbn:
+#         Book.delete_book(isbn)
+#         updateBookCollectionCache()
+#         response = Response("", status=204)
+#         return response
 
     invalidBookObjectErrorMsg = {
         "error": "Book with ISBN number provided not found, so unable to delete",
