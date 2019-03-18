@@ -3,23 +3,63 @@ from BookModel import *
 from settings import *
 import json
 
-# GET /books
+import jwt, datetime
+from UserModel import User
+
+books = Book.get_all_books()
+
+# ~~PAGINATION~~
+DEFAULT_PAGE_LIMIT = 3
+
+app.config['SECRET_KEY'] = 'meow'
+
+@app.route('/login', methods=['POST'])
+def get_token():
+    request_data = request.get_json()
+    username = str(request_data['username'])
+    password = str(request_data['password'])
+
+    match = User.username_password_match(username, password)
+
+    if match:
+        expiration_date = datetime.datetime.utcnow() + datetime.timedelta(seconds=100)
+        token = jwt.encode({'exp': expiration_date}, app.config['SECRET_KEY'], algorithm='HS256')
+        return token
+    else:
+        return Response('', 401, mimetype='application/json')
+
+@app.route('/books/page/<int:page_number>')
+def get_paginated_books(page_number):
+    print(type(request.args.get('limit')))
+    LIMIT = request.args.get('limit', DEFAULT_PAGE_LIMIT, int)
+    startIndex = page_number*LIMIT-LIMIT
+    endIndex = page_number*LIMIT
+    print(startIndex)
+    print(endIndex)
+    return jsonify({'books': books[startIndex:endIndex]})
+
+
+# GET /books?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NTI5NDY5NDh9.6hYoqqp5OrmWelkr3aAeCTIDMMIDF8vi-uQzK3mva4E
 @app.route('/books')
 def get_books():
-    return jsonify({'books': Book.get_all_books()})
+    token = request.args.get('token')
+    try:
+        jwt.decode(token. app.config['SECRET_KEY'])
+    except:
+        return jsonify({'error': 'Need a valid token to view this page'}), 401
+
+    return jsonify({'books': books})
+
+def validBookObject(bookObject):
+    if ("name" in bookObject and "price" in bookObject and "isbn" in bookObject):
+        return True
+    else:
+        return False
 
 @app.route ('/books/<int:isbn>')
 def get_book_by_isbn(isbn):
     return_value = Book.get_book(isbn)
     return jsonify(return_value)
-
-def validBookObject(bookObject):
-    if ("name" in bookObject 
-            and "price" in bookObject 
-                and "isbn" in bookObject):
-        return True
-    else:
-        return False
 
 # POST /books
 @app.route('/books', methods=['POST'])
@@ -99,15 +139,3 @@ def delete_book(isbn):
     return response
 
 app.run(port=5000)
-
-# ~~PAGINATION~~
-# DEFAULT_PAGE_LIMIT = 3
-# @app.route('/books/page/<int:page_number>')
-# def get_paginated_books(page_number):
-#     print(type(request.args.get('limit')))
-#     LIMIT = request.args.get('limit', DEFAULT_PAGE_LIMIT, int)
-#     startIndex = page_number*LIMIT-LIMIT
-#     endIndex = page_number*LIMIT
-#     print(startIndex)
-#     print(endIndex)
-#     return jsonify({'books': books[startIndex:endIndex]})
