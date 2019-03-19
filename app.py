@@ -48,7 +48,7 @@ def token_required(f):
             return f(*args, **kwargs)
         except:
             return jsonify({'error': 'Need a valid token to view this page'}), 401
-        return wrapper
+    return wrapper
 
 
 
