@@ -1,0 +1,47 @@
+{
+"isbn": 89123718273,
+"name": "The Odessey",
+"price": 1.99
+},
+{
+"isbn": 555987923,
+"name": "Three in a boat",
+"price": 77.99
+},
+{"isbn": 8123891271,
+"name": "Green Eggs and Ham",
+"price": 0.99
+},
+{
+"isbn": 12321321312,
+"name": "Frankenstein",
+"price": 7.99
+},
+{
+"isbn": 12321321312,
+"name": "Harry Potter and The Chamber Secrets",
+"price": 19.99,
+"thisIsGarbageData": "poasidsadoasid1283918"
+},
+{
+"isbn": 399913451,
+"name": "Goodnight Moon",
+"price": 40.44
+},
+{
+"isbn": 34981111,
+"name": "Storm in a pool",
+"price": 1.02
+},
+{
+"isbn": 44467892207,
+"name": "Great person lifestyle",
+"price": 102.02
+}
+		
+METHOD: PUT
+http://127.0.0.1:5000/books/97778880165
+{
+"name": "The Odessey",
+"price": 7.99
+}
